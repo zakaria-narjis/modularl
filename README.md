@@ -7,7 +7,7 @@ ModulaRL is a highly modular and extensible reinforcement learning library built
 - Modular architecture allowing easy component swapping and extension
 - Efficient implementations leveraging PyTorch's capabilities
 - Integration with TorchRL for optimized replay buffers
-- Clear documentation and examples for quick start and deep dives
+- Clear documentation and examples for quick start
 - Designed for both research and practical applications in reinforcement learning
 
 ## Installation
