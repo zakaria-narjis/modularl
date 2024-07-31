@@ -7,29 +7,31 @@ from tensordict import TensorDict
 from agent import AbstractAgent
 from torchrl.data import TensorDictReplayBuffer, LazyMemmapStorage
 from torchrl.data.replay_buffers.samplers import SamplerWithoutReplacement
+from typing import Callable, Optional, Any
+from torch.utils.tensorboard import SummaryWriter
 
 
 class SAC(AbstractAgent):
 
     def __init__(
         self,
-        actor,
-        qf1,
-        qf2,
-        actor_optimizer,
-        q_optimizer,
-        replay_buffer,
-        entropy_lr=1e-3,
-        batch_size=32,
-        learning_starts=0,
-        entropy_temperature=0.2,
-        target_entropy=None,
-        tau=0.005,
-        device="cpu",
-        burning_action_func=None,
-        writer=None,
-        **kwargs
-    ):
+        actor: torch.nn.Module,
+        qf1: torch.nn.Module,
+        qf2: torch.nn.Module,
+        actor_optimizer: torch.optim.Optimizer,
+        q_optimizer: torch.optim.Optimizer,
+        replay_buffer: TensorDictReplayBuffer,
+        entropy_lr: float = 1e-3,
+        batch_size: int = 32,
+        learning_starts: int = 0,
+        entropy_temperature: float = 0.2,
+        target_entropy: Optional[float] = None,
+        tau: float = 0.005,
+        device: str = "cpu",
+        burning_action_func: Optional[Callable] = None,
+        writer: Optional[SummaryWriter] = None,
+        **kwargs: Any
+    ) -> None:
         """
         Initializes the SAC (Soft Actor-Critic) agent.
 
@@ -37,18 +39,18 @@ class SAC(AbstractAgent):
             actor (nn.Module): The actor network.
             qf1 (nn.Module): The first Q-function network.
             qf2 (nn.Module): The second Q-function network.
-            actor_optimizer(torch.optim): The optimizer for the actor network.
-            q_optimizer (torch.optim): The optimizer for the Q-function networks.
-            replay_buffer (torchrl.data.replay_buffers): The replay buffer for storing and sampling experiences.
+            actor_optimizer(torch.optim.Optimizer): The optimizer for the actor network.
+            q_optimizer (torch.optim.Optimizer): The optimizer for the Q-function networks.
+            replay_buffer (torchrl.data.replay_buffers.TensorDictReplayBuffer): The replay buffer for storing and sampling experiences.
             entropy_lr (float): The learning rate for entropy temperature adjustment.
             batch_size (int): The batch size for training.
             learning_starts (int): The number of steps to collect experiences before starting training.
             entropy_temperature (float): The initial entropy temperature value.
-            target_entropy (float): The target entropy value for entropy temperature adjustment.
+            target_entropy (Optional[float]): The target entropy value for entropy temperature adjustment.
             tau (float): The soft update coefficient for target network updates.
             device (str): The device to run the agent on (e.g., "cpu" or "cuda").
-            burning_action_func (callable): A function to generate burning actions for exploration.
-            writer (torch.utils.tensorboardSummaryWriter): A writer object for logging.
+            burning_action_func (Optional[Callable]): A function to generate burning actions for exploration.
+            writer (Optional[torch.utils.tensorboard.SummaryWriter]): A writer object for logging.
 
         Returns:
             None
@@ -61,6 +63,7 @@ class SAC(AbstractAgent):
         self.tau = tau
         self.burning_action_func = burning_action_func
         self.learning_starts = learning_starts
+
         # networks
         self.actor = actor.to(self.device)
         self.qf1 = qf1.to(self.device)
@@ -87,30 +90,27 @@ class SAC(AbstractAgent):
             self.a_optimizer = optim.Adam([self.log_alpha], lr=self.entropy_lr)
         else:
             self.alpha = self.alpha
-        # ReplayBuffer
-        # self.rb = TensorDictReplayBuffer(
-        #                 storage=LazyMemmapStorage(args.buffer_size,),
-        #                 sampler=SamplerWithoutReplacement(),
-        #                                                 )
-        # self.rb = TensorDictReplayBuffer(storage=LazyMemmapStorage(self.buffer_size,))
 
-    def init(
-        self,
-    ) -> None:
+    def init(self) -> None:
         self.start_time = time.time()
         self.global_step = 0
 
     def observe(
-        self, batch_obs, batch_actions, batch_rewards, batch_next_obs, batch_dones
-    ):
+        self,
+        batch_obs: torch.Tensor,
+        batch_actions: torch.Tensor,
+        batch_rewards: torch.Tensor,
+        batch_next_obs: torch.Tensor,
+        batch_dones: torch.Tensor,
+    ) -> None:
         """
         Observe the environment and store the transition in the replay buffer
         Args:
-            batch_obs: Tensor containing the observations
-            batch_actions: Tensor containing the actions
-            batch_rewards: Tensor containing the rewards
-            batch_next_obs: Tensor containing the next observations
-            batch_dones: Tensor containing the dones
+            batch_obs (torch.Tensor): Tensor containing the observations
+            batch_actions (torch.Tensor): Tensor containing the actions
+            batch_rewards (torch.Tensor): Tensor containing the rewards
+            batch_next_obs (torch.Tensor): Tensor containing the next observations
+            batch_dones (torch.Tensor): Tensor containing the dones
         """
         self.global_step += 1
         batch_transition = TensorDict(
@@ -126,24 +126,19 @@ class SAC(AbstractAgent):
         self.rb.extend(batch_transition)
         self.update()
 
-    def act_train(self, batch_obs):
-        torch.pi
+    def act_train(self, batch_obs: torch.Tensor) -> torch.Tensor:
         if (
             self.global_step < self.args.learning_starts
-            and self.args.use_burning_action == True
+            and self.args.use_burning_action != None
         ):
-            return torch.randint(
-                low=self.args.low_action,
-                high=self.high_action,
-                size=(batch_obs.shape[0], self.args.action_shape),
-            ).to(self.device)
+            return self.burning_action_func(batch_obs).to(self.device)
         else:
             actions, _, _ = self.actor.get_action(batch_obs)
             actions = actions.detach()
 
         return actions
 
-    def act_eval(self, obs):
+    def act_eval(self, obs: torch.Tensor) -> torch.Tensor:
         self.qf1.eval().requires_grad_(False)
         self.qf2.eval().requires_grad_(False)
         self.actor.eval().requires_grad_(False)
@@ -154,7 +149,7 @@ class SAC(AbstractAgent):
         self.actor.train().requires_grad_(True)
         return actions
 
-    def update(self):
+    def update(self) -> None:
         """
         Update the SAC agent by performing a training step.
 
@@ -164,7 +159,6 @@ class SAC(AbstractAgent):
         Returns:
             None
         """
-        # ALGO LOGIC: training.
         if self.global_step > self.args.learning_starts:
             data = self.rb.sample(self.args.batch_size).to(self.device)
             with torch.no_grad():
