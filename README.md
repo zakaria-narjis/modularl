@@ -20,3 +20,14 @@ pip install modularl
 | Algorithm | Type | Paper |
 |-----------|------|-------|
 | SAC (Soft Actor-Critic) | Off-policy | [Haarnoja et al. 2018](https://arxiv.org/abs/1801.01290) |
+
+
+## Citation
+```
+@software{modularl2024,
+  author = {Your Name},
+  title = {ModulaRL: A Modular Reinforcement Learning Library},
+  year = {2024},
+  url = {https://github.com/yourusername/ModulaRL}
+}
+```
