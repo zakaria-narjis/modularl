@@ -20,16 +20,38 @@ class SAC:
                 actor_optimizer,
                 q_optimizer,    
                 replay_buffer,
-                entropy_lr = 1e-3,
-                batch_size = 32,
-                learning_starts = 0,            
-                entropy_temperature = 0.2,
-                target_entropy = None,
-                tau = 0.005,
-                device = "cpu",
+                entropy_lr=1e-3,
+                batch_size=32,
+                learning_starts=0,            
+                entropy_temperature=0.2,
+                target_entropy=None,
+                tau=0.005,
+                device="cpu",
                 burning_action_func=None,
-                writer=None,):
-        
+                writer=None):
+        """
+        Initializes the SAC (Soft Actor-Critic) agent.
+
+        Args:
+            actor (nn.Module): The actor network.
+            qf1 (nn.Module): The first Q-function network.
+            qf2 (nn.Module): The second Q-function network.
+            actor_optimizer(torch.optim): The optimizer for the actor network.
+            q_optimizer (torch.optim): The optimizer for the Q-function networks.
+            replay_buffer (torchrl.data.replay_buffers): The replay buffer for storing and sampling experiences.
+            entropy_lr (float): The learning rate for entropy temperature adjustment.
+            batch_size (int): The batch size for training.
+            learning_starts (int): The number of steps to collect experiences before starting training.
+            entropy_temperature (float): The initial entropy temperature value.
+            target_entropy (float): The target entropy value for entropy temperature adjustment.
+            tau (float): The soft update coefficient for target network updates.
+            device (str): The device to run the agent on (e.g., "cpu" or "cuda").
+            burning_action_func (callable): A function to generate burning actions for exploration.
+            writer (torch.utils.tensorboardSummaryWriter): A writer object for logging.
+
+        Returns:
+            None
+        """
         self.device = device
         self.writer = writer
         self.rb = replay_buffer
@@ -37,7 +59,7 @@ class SAC:
         self.tau = tau
         self.burning_action_func = burning_action_func
         self.learning_starts = learning_starts
-        #networks
+        # networks
         self.actor = actor.to(self.device)
         self.qf1 = qf1.to(self.device)
         self.qf2 = qf2.to(self.device)
@@ -61,16 +83,15 @@ class SAC:
             self.log_alpha = torch.zeros(1, requires_grad=True, device=self.device)
             self.alpha = self.log_alpha.exp().item()
             self.a_optimizer = optim.Adam([self.log_alpha], 
-                                          lr=self.entropy_lr,
-                                          )
+                                          lr=self.entropy_lr)
         else:
             self.alpha = self.alpha
-        #ReplayBuffer
+        # ReplayBuffer
         # self.rb = TensorDictReplayBuffer(
         #                 storage=LazyMemmapStorage(args.buffer_size,), 
         #                 sampler=SamplerWithoutReplacement(),
         #                                                 )
-        # self.rb = TensorDictReplayBuffer(storage=LazyMemmapStorage(self.buffer_size,) )
+        # self.rb = TensorDictReplayBuffer(storage=LazyMemmapStorage(self.buffer_size,))
     def init(self,) -> None:
         self.start_time = time.time()
         self.global_step = 0
@@ -122,12 +143,21 @@ class SAC:
         self.actor.train().requires_grad_(True) 
         return actions
     
-    def update(self,):
+    def update(self):
+        """
+        Update the SAC agent by performing a training step.
+
+        This method implements the training logic for the SAC (Soft Actor-Critic) algorithm.
+        It updates the Q-networks, the actor network, and the temperature parameter alpha.
+
+        Returns:
+            None
+        """
         # ALGO LOGIC: training.
         if self.global_step > self.args.learning_starts:
             data = self.rb.sample(self.args.batch_size).to(self.device)
             with torch.no_grad():
-                if self.args.gamma!=0:
+                if self.args.gamma != 0:
                     next_state_actions, next_state_log_pi, _ = self.actor.get_action(data["next_observations"])
                     qf1_next_target = self.qf1_target(data["next_observations"], actions=next_state_actions)
                     qf2_next_target = self.qf2_target(data["next_observations"], actions=next_state_actions)
@@ -136,8 +166,8 @@ class SAC:
                 else:
                     next_q_value = data["rewards"].flatten()
 
-            qf1_a_values = self.qf1(data["observations"], actions = data["actions"]).view(-1)
-            qf2_a_values = self.qf2(data["observations"], actions = data["actions"]).view(-1)
+            qf1_a_values = self.qf1(data["observations"], actions=data["actions"]).view(-1)
+            qf2_a_values = self.qf2(data["observations"], actions=data["actions"]).view(-1)
             qf1_loss = F.mse_loss(qf1_a_values, next_q_value)
             qf2_loss = F.mse_loss(qf2_a_values, next_q_value)
             qf_loss = qf1_loss + qf2_loss
@@ -148,9 +178,7 @@ class SAC:
             self.q_optimizer.step()
 
             if self.global_step % self.args.policy_frequency == 0:  # TD 3 Delayed update support
-                for _ in range(
-                    self.args.policy_frequency
-                ):  # compensate for the delay by doing 'actor_update_interval' instead of 1
+                for _ in range(self.args.policy_frequency):  # compensate for the delay by doing 'actor_update_interval' instead of 1
                     pi, log_pi, _ = self.actor.get_action(data["observations"])
                     qf1_pi = self.qf1(data["observations"], actions=pi)
                     qf2_pi = self.qf2(data["observations"], actions=pi)
@@ -162,17 +190,14 @@ class SAC:
                     self.actor_optimizer.step()
 
                     if self.args.autotune:
-                        # with torch.no_grad():
-                        #     _, log_pi, _ = self.actor.get_action(data["observations"])
                         alpha_loss = (-self.log_alpha.exp() * (log_pi + self.target_entropy).detach()).mean()
                         self.a_optimizer.zero_grad()
                         alpha_loss.backward()
                         self.a_optimizer.step()
                         self.alpha = self.log_alpha.exp().item()
 
-
             # update the target networks
-            if self.args.gamma!=0:
+            if self.args.gamma != 0:
                 if self.global_step % self.args.target_network_frequency == 0:
                     for param, target_param in zip(self.qf1.parameters(), self.qf1_target.parameters()):
                         target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
