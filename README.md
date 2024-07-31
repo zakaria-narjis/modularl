@@ -1,4 +1,7 @@
 # ModulaRL
+<div align="center">
+  <img src="assets/modulaRL_logo.svg" alt="ModulaRL Logo">
+</div>
 
 ModulaRL is a highly modular and extensible reinforcement learning library built on PyTorch. It aims to provide researchers and developers with a flexible framework for implementing, experimenting with, and extending various RL algorithms.
 
