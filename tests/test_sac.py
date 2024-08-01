@@ -7,7 +7,7 @@ import torch.nn.functional as F
 import torch.nn.init as init
 from modularl.agents.sac import SAC
 from modularl.replay_buffers import ReplayBuffer
-
+import copy
 
 LOG_STD_MIN = -20
 LOG_STD_MAX = 2
@@ -164,10 +164,9 @@ def test_sac_update(sac_agent):
         )
 
     # Check that parameters haven't been updated yet
-    initial_actor_state = sac_agent.actor.state_dict()
-    initial_qf1_state = sac_agent.qf1.state_dict()
-    initial_qf2_state = sac_agent.qf2.state_dict()
-
+    initial_actor_state = copy.deepcopy(sac_agent.actor.state_dict())
+    initial_qf1_state = copy.deepcopy(sac_agent.qf1.state_dict())
+    initial_qf2_state = copy.deepcopy(sac_agent.qf2.state_dict())
     def check_state_dict_unchanged(initial_state, current_state):
         for key in initial_state:
             if not torch.allclose(initial_state[key], current_state[key]):
@@ -179,10 +178,16 @@ def test_sac_update(sac_agent):
     assert check_state_dict_unchanged(initial_qf2_state, sac_agent.qf2.state_dict()), "QF2 parameters were updated before learning_starts"
 
     # Perform one more observation to trigger the update
-    sac_agent.observe(batch_obs, batch_actions, batch_rewards, batch_next_obs, batch_dones)
+    for _ in range(100): 
+        batch_obs = torch.randn(10, 4)
+        batch_actions = torch.randn(10, 2)
+        batch_rewards = torch.randn(10)
+        batch_next_obs = torch.randn(10, 4)
+        batch_dones = torch.randint(0, 2, (10,))
+        sac_agent.observe(batch_obs, batch_actions, batch_rewards, batch_next_obs, batch_dones)
 
     # Now check if the parameters have been updated
-    def check_state_dict_updated(initial_state, updated_state, tolerance=1e-6):
+    def check_state_dict_updated(initial_state, updated_state, tolerance=1e-4):
         for key in initial_state:
             if not torch.allclose(initial_state[key], updated_state[key], atol=tolerance):
                 return True
@@ -191,7 +196,6 @@ def test_sac_update(sac_agent):
     actor_updated = check_state_dict_updated(initial_actor_state, sac_agent.actor.state_dict())
     qf1_updated = check_state_dict_updated(initial_qf1_state, sac_agent.qf1.state_dict())
     qf2_updated = check_state_dict_updated(initial_qf2_state, sac_agent.qf2.state_dict())
-
     assert actor_updated, "Actor parameters were not updated after learning_starts"
     assert qf1_updated, "QF1 parameters were not updated after learning_starts"
     assert qf2_updated, "QF2 parameters were not updated after learning_starts"
