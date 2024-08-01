@@ -26,7 +26,7 @@ class ReplayBuffer(AbstractReplayBuffer):
         extend(transition): Add a transition to the buffer.
         update(idx, transition): Update a transition in the buffer.
 
-    """
+    """  # noqa: E501
 
     def __init__(self, buffer_size: int, sampling="random", **kwargs):
         super().__init__(buffer_size, **kwargs)
@@ -37,7 +37,9 @@ class ReplayBuffer(AbstractReplayBuffer):
             self.sampler = PrioritizedSampler()
         elif sampling == "without_replacement":
             self.sampler = SamplerWithoutReplacement()
-        self.buffer = TensorDictReplayBuffer(storage=self.storage, sampler=self.sampler)
+        self.buffer = TensorDictReplayBuffer(
+            storage=self.storage, sampler=self.sampler
+        )
 
     def sample(self, batch_size: int):
         """

@@ -13,7 +13,12 @@ class AbstractAgent(abc.ABC):
 
     @abc.abstractmethod
     def observe(
-        self, batch_obs, batch_actions, batch_rewards, batch_next_obs, batch_dones
+        self,
+        batch_obs,
+        batch_actions,
+        batch_rewards,
+        batch_next_obs,
+        batch_dones,
     ):
         """Store a transition in the replay buffer."""
         pass

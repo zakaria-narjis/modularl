@@ -15,7 +15,12 @@ LOG_STD_MAX = 2
 
 class DummyActor(nn.Module):
     def __init__(
-        self, obs_dim, action_dim, high_action=1.0, low_action=-1.0, use_xavier=True
+        self,
+        obs_dim,
+        action_dim,
+        high_action=1.0,
+        low_action=-1.0,
+        use_xavier=True,
     ):
         super().__init__()
         self.fc1 = nn.Linear(obs_dim, 16 * obs_dim)
@@ -25,11 +30,15 @@ class DummyActor(nn.Module):
 
         self.register_buffer(
             "action_scale",
-            torch.tensor((high_action - low_action) / 2.0, dtype=torch.float32),
+            torch.tensor(
+                (high_action - low_action) / 2.0, dtype=torch.float32
+            ),
         )
         self.register_buffer(
             "action_bias",
-            torch.tensor((high_action + low_action) / 2.0, dtype=torch.float32),
+            torch.tensor(
+                (high_action + low_action) / 2.0, dtype=torch.float32
+            ),
         )
 
         if use_xavier:
@@ -68,7 +77,9 @@ class DummyQFunction(nn.Module):
     def __init__(self, obs_dim, action_dim, use_xavier=True):
         super().__init__()
         self.fc1 = nn.Linear(obs_dim + action_dim, 16 * (obs_dim + action_dim))
-        self.fc2 = nn.Linear(16 * (obs_dim + action_dim), 16 * (obs_dim + action_dim))
+        self.fc2 = nn.Linear(
+            16 * (obs_dim + action_dim), 16 * (obs_dim + action_dim)
+        )
         self.fc3 = nn.Linear(16 * (obs_dim + action_dim), 1)
 
         if use_xavier:
@@ -97,7 +108,9 @@ def sac_agent():
     qf1 = DummyQFunction(obs_dim, action_dim)
     qf2 = DummyQFunction(obs_dim, action_dim)
     actor_optimizer = torch.optim.Adam(actor.parameters())
-    q_optimizer = torch.optim.Adam(list(qf1.parameters()) + list(qf2.parameters()))
+    q_optimizer = torch.optim.Adam(
+        list(qf1.parameters()) + list(qf2.parameters())
+    )
     replay_buffer = ReplayBuffer(buffer_size=1000)
     agent = SAC(
         actor=actor,
@@ -169,7 +182,11 @@ def test_sac_update(sac_agent):
         batch_next_obs = torch.randn(10, 4)
         batch_dones = torch.randint(0, 2, (10,))
         sac_agent.observe(
-            batch_obs, batch_actions, batch_rewards, batch_next_obs, batch_dones
+            batch_obs,
+            batch_actions,
+            batch_rewards,
+            batch_next_obs,
+            batch_dones,
         )
 
     # Check that parameters haven't been updated yet
@@ -201,7 +218,11 @@ def test_sac_update(sac_agent):
         batch_next_obs = torch.randn(10, 4)
         batch_dones = torch.randint(0, 2, (10,))
         sac_agent.observe(
-            batch_obs, batch_actions, batch_rewards, batch_next_obs, batch_dones
+            batch_obs,
+            batch_actions,
+            batch_rewards,
+            batch_next_obs,
+            batch_dones,
         )
 
     # Now check if the parameters have been updated
@@ -222,6 +243,8 @@ def test_sac_update(sac_agent):
     qf2_updated = check_state_dict_updated(
         initial_qf2_state, sac_agent.qf2.state_dict()
     )
-    assert actor_updated, "Actor parameters were not updated after learning_starts"
+    assert (
+        actor_updated
+    ), "Actor parameters were not updated after learning_starts"
     assert qf1_updated, "QF1 parameters were not updated after learning_starts"
     assert qf2_updated, "QF2 parameters were not updated after learning_starts"

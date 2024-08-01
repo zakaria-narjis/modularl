@@ -5,8 +5,7 @@ import torch.optim as optim
 import copy
 from tensordict import TensorDict
 from .agent import AbstractAgent
-from torchrl.data import TensorDictReplayBuffer, LazyMemmapStorage
-from torchrl.data.replay_buffers.samplers import SamplerWithoutReplacement
+from torchrl.data import TensorDictReplayBuffer
 from typing import Callable, Optional, Any
 from torch.utils.tensorboard import SummaryWriter
 
@@ -60,7 +59,7 @@ class SAC(AbstractAgent):
 
         Returns:
             None
-        """
+        """  # noqa: E501
         super().__init__(**kwargs)
         self.device = device
         self.writer = writer
@@ -92,7 +91,9 @@ class SAC(AbstractAgent):
 
         # entropy
         if self.auto_tune_temp:
-            self.log_alpha = torch.zeros(1, requires_grad=True, device=self.device)
+            self.log_alpha = torch.zeros(
+                1, requires_grad=True, device=self.device
+            )
             self.alpha = self.log_alpha.exp().item()
             self.a_optimizer = optim.Adam([self.log_alpha], lr=self.entropy_lr)
         else:
@@ -118,7 +119,7 @@ class SAC(AbstractAgent):
             batch_rewards (torch.Tensor): Tensor containing the rewards
             batch_next_obs (torch.Tensor): Tensor containing the next observations
             batch_dones (torch.Tensor): Tensor containing the dones
-        """
+        """  # noqa: E501
         self.global_step += 1
         batch_transition = TensorDict(
             {
@@ -174,13 +175,13 @@ class SAC(AbstractAgent):
 
         Returns:
             None
-        """
+        """  # noqa: E501
         if self.global_step > self.learning_starts:
             data = self.rb.sample(self.batch_size).to(self.device)
             with torch.no_grad():
                 if self.gamma != 0:
-                    next_state_actions, next_state_log_pi, _ = self.actor.get_action(
-                        data["next_observations"]
+                    next_state_actions, next_state_log_pi, _ = (
+                        self.actor.get_action(data["next_observations"])
                     )
                     qf1_next_target = self.qf1_target(
                         data["next_observations"], actions=next_state_actions
@@ -198,12 +199,12 @@ class SAC(AbstractAgent):
                 else:
                     next_q_value = data["rewards"].flatten()
 
-            qf1_a_values = self.qf1(data["observations"], actions=data["actions"]).view(
-                -1
-            )
-            qf2_a_values = self.qf2(data["observations"], actions=data["actions"]).view(
-                -1
-            )
+            qf1_a_values = self.qf1(
+                data["observations"], actions=data["actions"]
+            ).view(-1)
+            qf2_a_values = self.qf2(
+                data["observations"], actions=data["actions"]
+            ).view(-1)
             qf1_loss = F.mse_loss(qf1_a_values, next_q_value)
             qf2_loss = F.mse_loss(qf2_a_values, next_q_value)
             qf_loss = qf1_loss + qf2_loss
@@ -218,7 +219,7 @@ class SAC(AbstractAgent):
             ):  # TD 3 Delayed update support
                 for _ in range(
                     self.policy_frequency
-                ):  # compensate for the delay by doing 'actor_update_interval' instead of 1
+                ):  # compensate for the delay by doing 'actor_update_interval' instead of 1 # noqa: E501
                     pi, log_pi, _ = self.actor.get_action(data["observations"])
                     qf1_pi = self.qf1(data["observations"], actions=pi)
                     qf2_pi = self.qf2(data["observations"], actions=pi)
@@ -246,21 +247,27 @@ class SAC(AbstractAgent):
                         self.qf1.parameters(), self.qf1_target.parameters()
                     ):
                         target_param.data.copy_(
-                            self.tau * param.data + (1 - self.tau) * target_param.data
+                            self.tau * param.data
+                            + (1 - self.tau) * target_param.data
                         )
                     for param, target_param in zip(
                         self.qf2.parameters(), self.qf2_target.parameters()
                     ):
                         target_param.data.copy_(
-                            self.tau * param.data + (1 - self.tau) * target_param.data
+                            self.tau * param.data
+                            + (1 - self.tau) * target_param.data
                         )
 
             if self.global_step % 100 == 0 and self.writer is not None:
                 self.writer.add_scalar(
-                    "losses/qf1_values", qf1_a_values.mean().item(), self.global_step
+                    "losses/qf1_values",
+                    qf1_a_values.mean().item(),
+                    self.global_step,
                 )
                 self.writer.add_scalar(
-                    "losses/qf2_values", qf2_a_values.mean().item(), self.global_step
+                    "losses/qf2_values",
+                    qf2_a_values.mean().item(),
+                    self.global_step,
                 )
                 self.writer.add_scalar(
                     "losses/qf1_loss", qf1_loss.item(), self.global_step
@@ -274,7 +281,9 @@ class SAC(AbstractAgent):
                 self.writer.add_scalar(
                     "losses/actor_loss", actor_loss.item(), self.global_step
                 )
-                self.writer.add_scalar("losses/alpha", self.alpha, self.global_step)
+                self.writer.add_scalar(
+                    "losses/alpha", self.alpha, self.global_step
+                )
                 self.writer.add_scalar(
                     "charts/SPS",
                     int(self.global_step / (time.time() - self.start_time)),
@@ -282,5 +291,7 @@ class SAC(AbstractAgent):
                 )
                 if self.auto_tune_temp:
                     self.writer.add_scalar(
-                        "losses/alpha_loss", alpha_loss.item(), self.global_step
+                        "losses/alpha_loss",
+                        alpha_loss.item(),
+                        self.global_step,
                     )

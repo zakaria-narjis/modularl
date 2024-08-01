@@ -29,7 +29,11 @@ class AbstractAgentTest(ABC):
 
         initial_rb_size = len(agent.rb)
         agent.observe(
-            batch_obs, batch_actions, batch_rewards, batch_next_obs, batch_dones
+            batch_obs,
+            batch_actions,
+            batch_rewards,
+            batch_next_obs,
+            batch_dones,
         )
         assert len(agent.rb) == initial_rb_size + batch_size
 
@@ -62,7 +66,11 @@ class AbstractAgentTest(ABC):
             batch_next_obs = torch.randn(10, agent.actor.fc.in_features)
             batch_dones = torch.randint(0, 2, (10,))
             agent.observe(
-                batch_obs, batch_actions, batch_rewards, batch_next_obs, batch_dones
+                batch_obs,
+                batch_actions,
+                batch_rewards,
+                batch_next_obs,
+                batch_dones,
             )
 
         # Perform an update
@@ -73,7 +81,8 @@ class AbstractAgentTest(ABC):
         # Check if the parameters have been updated
         assert not torch.all(
             torch.eq(
-                initial_actor_state["fc.weight"], agent.actor.state_dict()["fc.weight"]
+                initial_actor_state["fc.weight"],
+                agent.actor.state_dict()["fc.weight"],
             )
         )
 
