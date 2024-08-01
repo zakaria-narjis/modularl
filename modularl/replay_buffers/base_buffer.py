@@ -20,3 +20,7 @@ class AbstractReplayBuffer(abc.ABC):
     def update(self, idx, transition):
         """Update a transition in the buffer."""
         pass
+    @abc.abstractmethod
+    def __len__(self):
+        """Return the number of transitions stored in the buffer."""
+        pass

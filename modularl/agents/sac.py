@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import copy
 from tensordict import TensorDict
-from agent import AbstractAgent
+from .agent import AbstractAgent
 from torchrl.data import TensorDictReplayBuffer, LazyMemmapStorage
 from torchrl.data.replay_buffers.samplers import SamplerWithoutReplacement
 from typing import Callable, Optional, Any
@@ -21,12 +21,15 @@ class SAC(AbstractAgent):
         actor_optimizer: torch.optim.Optimizer,
         q_optimizer: torch.optim.Optimizer,
         replay_buffer: TensorDictReplayBuffer,
+        gamma: float = 0.99,
         entropy_lr: float = 1e-3,
         batch_size: int = 32,
         learning_starts: int = 0,
         entropy_temperature: float = 0.2,
         target_entropy: Optional[float] = None,
         tau: float = 0.005,
+        policy_frequency: int = 1,
+        target_network_frequency: int = 2,
         device: str = "cpu",
         burning_action_func: Optional[Callable] = None,
         writer: Optional[SummaryWriter] = None,
@@ -42,12 +45,15 @@ class SAC(AbstractAgent):
             actor_optimizer(torch.optim.Optimizer): The optimizer for the actor network.
             q_optimizer (torch.optim.Optimizer): The optimizer for the Q-function networks.
             replay_buffer (torchrl.data.replay_buffers.TensorDictReplayBuffer): The replay buffer for storing and sampling experiences.
+            gamma (float): The discount factor for future rewards.
             entropy_lr (float): The learning rate for entropy temperature adjustment.
             batch_size (int): The batch size for training.
             learning_starts (int): The number of steps to collect experiences before starting training.
             entropy_temperature (float): The initial entropy temperature value.
             target_entropy (Optional[float]): The target entropy value for entropy temperature adjustment.
             tau (float): The soft update coefficient for target network updates.
+            policy_frequency (int): The frequency of actor updates.
+            target_network_frequency (int): The frequency of target network updates. 
             device (str): The device to run the agent on (e.g., "cpu" or "cuda").
             burning_action_func (Optional[Callable]): A function to generate burning actions for exploration.
             writer (Optional[torch.utils.tensorboard.SummaryWriter]): A writer object for logging.
@@ -63,7 +69,7 @@ class SAC(AbstractAgent):
         self.tau = tau
         self.burning_action_func = burning_action_func
         self.learning_starts = learning_starts
-
+        self.gamma = gamma
         # networks
         self.actor = actor.to(self.device)
         self.qf1 = qf1.to(self.device)
@@ -76,8 +82,9 @@ class SAC(AbstractAgent):
         self.q_optimizer = q_optimizer
         self.alpha = entropy_temperature
         self.entropy_lr = entropy_lr
-        self.target_entropy = target_entropy
-
+        self.policy_frequency = policy_frequency
+        self.target_network_frequency = target_network_frequency
+        self.target_entropy = target_entropy      
         if self.target_entropy is not None:
             self.auto_tune_temp = True
         else:
@@ -128,8 +135,8 @@ class SAC(AbstractAgent):
 
     def act_train(self, batch_obs: torch.Tensor) -> torch.Tensor:
         if (
-            self.global_step < self.args.learning_starts
-            and self.args.use_burning_action is not None
+            self.global_step < self.learning_starts
+            and self.burning_action_func is not None
         ):
             return self.burning_action_func(batch_obs).to(self.device)
         else:
@@ -152,7 +159,7 @@ class SAC(AbstractAgent):
         self.qf2.eval().requires_grad_(False)
         self.actor.eval().requires_grad_(False)
         with torch.no_grad():
-            actions = self.actor.get_action(batch_obs.to(self.device))
+            actions,_,_ = self.actor.get_action(batch_obs.to(self.device))
         self.qf1.train().requires_grad_(True)
         self.qf2.train().requires_grad_(True)
         self.actor.train().requires_grad_(True)
@@ -168,10 +175,10 @@ class SAC(AbstractAgent):
         Returns:
             None
         """
-        if self.global_step > self.args.learning_starts:
-            data = self.rb.sample(self.args.batch_size).to(self.device)
+        if self.global_step > self.learning_starts:
+            data = self.rb.sample(self.batch_size).to(self.device)
             with torch.no_grad():
-                if self.args.gamma != 0:
+                if self.gamma != 0:
                     next_state_actions, next_state_log_pi, _ = self.actor.get_action(
                         data["next_observations"]
                     )
@@ -187,7 +194,7 @@ class SAC(AbstractAgent):
                     )
                     next_q_value = data["rewards"].flatten() + (
                         1 - data["dones"].to(torch.float32).flatten()
-                    ) * self.args.gamma * (min_qf_next_target).view(-1)
+                    ) * self.gamma * (min_qf_next_target).view(-1)
                 else:
                     next_q_value = data["rewards"].flatten()
 
@@ -207,10 +214,10 @@ class SAC(AbstractAgent):
             self.q_optimizer.step()
 
             if (
-                self.global_step % self.args.policy_frequency == 0
+                self.global_step % self.policy_frequency == 0
             ):  # TD 3 Delayed update support
                 for _ in range(
-                    self.args.policy_frequency
+                    self.policy_frequency
                 ):  # compensate for the delay by doing 'actor_update_interval' instead of 1
                     pi, log_pi, _ = self.actor.get_action(data["observations"])
                     qf1_pi = self.qf1(data["observations"], actions=pi)
@@ -222,7 +229,7 @@ class SAC(AbstractAgent):
                     actor_loss.backward()
                     self.actor_optimizer.step()
 
-                    if self.args.autotune:
+                    if self.auto_tune_temp:
                         alpha_loss = (
                             -self.log_alpha.exp()
                             * (log_pi + self.target_entropy).detach()
@@ -233,21 +240,21 @@ class SAC(AbstractAgent):
                         self.alpha = self.log_alpha.exp().item()
 
             # update the target networks
-            if self.args.gamma != 0:
-                if self.global_step % self.args.target_network_frequency == 0:
+            if self.gamma != 0:
+                if self.global_step % self.target_network_frequency == 0:
                     for param, target_param in zip(
                         self.qf1.parameters(), self.qf1_target.parameters()
                     ):
                         target_param.data.copy_(
-                            self.args.tau * param.data
-                            + (1 - self.args.tau) * target_param.data
+                            self.tau * param.data
+                            + (1 - self.tau) * target_param.data
                         )
                     for param, target_param in zip(
                         self.qf2.parameters(), self.qf2_target.parameters()
                     ):
                         target_param.data.copy_(
-                            self.args.tau * param.data
-                            + (1 - self.args.tau) * target_param.data
+                            self.tau * param.data
+                            + (1 - self.tau) * target_param.data
                         )
 
             if self.global_step % 100 == 0 and self.writer is not None:
@@ -275,7 +282,7 @@ class SAC(AbstractAgent):
                     int(self.global_step / (time.time() - self.start_time)),
                     self.global_step,
                 )
-                if self.args.autotune:
+                if self.auto_tune_temp:
                     self.writer.add_scalar(
                         "losses/alpha_loss", alpha_loss.item(), self.global_step
                     )

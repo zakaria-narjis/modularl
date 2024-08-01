@@ -13,7 +13,7 @@ def replay_buffer():
 
 def test_replay_buffer_init(replay_buffer):
     assert isinstance(replay_buffer, ReplayBuffer)
-    assert replay_buffer.buffer.max_size == 1000
+    assert replay_buffer.buffer.storage.max_size == 1000
 
 
 def test_replay_buffer_extend(replay_buffer):
