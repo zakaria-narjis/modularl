@@ -139,24 +139,24 @@ class SAC(AbstractAgent):
         return actions
 
     def act_eval(self, batch_obs: torch.Tensor) -> torch.Tensor:
-            """
-            Returns the actions to take in evaluation mode.
+        """
+        Returns the actions to take in evaluation mode.
 
-            Args:
-                batch_obs (torch.Tensor): The input observations (N,*).
+        Args:
+            batch_obs (torch.Tensor): The input observations (N,*).
 
-            Returns:
-                torch.Tensor: The actions to take(N,*).
-            """
-            self.qf1.eval().requires_grad_(False)
-            self.qf2.eval().requires_grad_(False)
-            self.actor.eval().requires_grad_(False)
-            with torch.no_grad():
-                actions = self.actor.get_action(batch_obs.to(self.device))
-            self.qf1.train().requires_grad_(True)
-            self.qf2.train().requires_grad_(True)
-            self.actor.train().requires_grad_(True)
-            return actions
+        Returns:
+            torch.Tensor: The actions to take(N,*).
+        """
+        self.qf1.eval().requires_grad_(False)
+        self.qf2.eval().requires_grad_(False)
+        self.actor.eval().requires_grad_(False)
+        with torch.no_grad():
+            actions = self.actor.get_action(batch_obs.to(self.device))
+        self.qf1.train().requires_grad_(True)
+        self.qf2.train().requires_grad_(True)
+        self.actor.train().requires_grad_(True)
+        return actions
 
     def update(self) -> None:
         """
