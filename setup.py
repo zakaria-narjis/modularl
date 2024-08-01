@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name="modularl",
     version="0.1.0",
-    description="A reinforcement learning library",
+    description="A modular reinforcement learning library",
     packages=find_packages(),
     install_requires=[
         "numpy>=1.24",
