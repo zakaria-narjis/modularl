@@ -73,6 +73,6 @@ class ReplayBuffer(AbstractReplayBuffer):
 
         """
         self.buffer[idx] = transition
-    
+
     def __len__(self):
         return len(self.buffer)

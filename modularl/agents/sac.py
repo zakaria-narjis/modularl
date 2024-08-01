@@ -53,7 +53,7 @@ class SAC(AbstractAgent):
             target_entropy (Optional[float]): The target entropy value for entropy temperature adjustment.
             tau (float): The soft update coefficient for target network updates.
             policy_frequency (int): The frequency of actor updates.
-            target_network_frequency (int): The frequency of target network updates. 
+            target_network_frequency (int): The frequency of target network updates.
             device (str): The device to run the agent on (e.g., "cpu" or "cuda").
             burning_action_func (Optional[Callable]): A function to generate burning actions for exploration.
             writer (Optional[torch.utils.tensorboard.SummaryWriter]): A writer object for logging.
@@ -84,7 +84,7 @@ class SAC(AbstractAgent):
         self.entropy_lr = entropy_lr
         self.policy_frequency = policy_frequency
         self.target_network_frequency = target_network_frequency
-        self.target_entropy = target_entropy      
+        self.target_entropy = target_entropy
         if self.target_entropy is not None:
             self.auto_tune_temp = True
         else:
@@ -159,7 +159,7 @@ class SAC(AbstractAgent):
         self.qf2.eval().requires_grad_(False)
         self.actor.eval().requires_grad_(False)
         with torch.no_grad():
-            actions,_,_ = self.actor.get_action(batch_obs.to(self.device))
+            actions, _, _ = self.actor.get_action(batch_obs.to(self.device))
         self.qf1.train().requires_grad_(True)
         self.qf2.train().requires_grad_(True)
         self.actor.train().requires_grad_(True)
@@ -246,15 +246,13 @@ class SAC(AbstractAgent):
                         self.qf1.parameters(), self.qf1_target.parameters()
                     ):
                         target_param.data.copy_(
-                            self.tau * param.data
-                            + (1 - self.tau) * target_param.data
+                            self.tau * param.data + (1 - self.tau) * target_param.data
                         )
                     for param, target_param in zip(
                         self.qf2.parameters(), self.qf2_target.parameters()
                     ):
                         target_param.data.copy_(
-                            self.tau * param.data
-                            + (1 - self.tau) * target_param.data
+                            self.tau * param.data + (1 - self.tau) * target_param.data
                         )
 
             if self.global_step % 100 == 0 and self.writer is not None:
