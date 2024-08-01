@@ -32,9 +32,9 @@ pip install modularl
 ## Citation
 ```
 @software{modularl2024,
-  author = {Your Name},
+  author = {zakaria narjis},
   title = {ModulaRL: A Modular Reinforcement Learning Library},
   year = {2024},
-  url = {https://github.com/yourusername/ModulaRL}
+  url = {https://github.com/zakaria-narjis/modularl}
 }
 ```
