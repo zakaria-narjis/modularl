@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import copy
 from tensordict import TensorDict
-from .agent import AbstractAgent
+from modularl.agents.agent import AbstractAgent
 from torchrl.data import TensorDictReplayBuffer
 from typing import Callable, Optional, Any
 from torch.utils.tensorboard import SummaryWriter
