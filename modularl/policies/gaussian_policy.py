@@ -2,12 +2,12 @@ import torch
 import torch.nn as nn
 import torch.nn.init as init
 from modularl.policies.policy import AbstractPolicy
-
+from typing import Any
 LOG_STD_MAX = 2
 LOG_STD_MIN = -20
 
 
-class GaussianPolicy(nn.Module, AbstractPolicy):
+class GaussianPolicy(AbstractPolicy):
     def __init__(
         self,
         observation_shape: int,
@@ -15,8 +15,9 @@ class GaussianPolicy(nn.Module, AbstractPolicy):
         high_action: float,
         low_action: float,
         use_xavier: bool = True,
+        **kwargs: Any,
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         """
         Gaussian Policy for continuous action spaces
 

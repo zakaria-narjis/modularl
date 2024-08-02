@@ -9,10 +9,7 @@ class AbstractPolicy(nn.Module, ABC):
 
     def __init__(
         self,
-        observation_shape: int,
-        action_shape: int,
-        high_action: float,
-        low_action: float,
+        **kwargs
     ):
         super(AbstractPolicy, self).__init__()
 

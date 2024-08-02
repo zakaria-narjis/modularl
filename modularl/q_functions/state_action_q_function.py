@@ -21,7 +21,7 @@ class SAQNetwork(StateActionQFunction):
         self.action_shape = action_shape
 
         self.network = nn.Sequential(
-            nn.Linear(observation_shape, 16 * observation_shape),
+            nn.Linear(observation_shape+action_shape, 16 * observation_shape),
             nn.ReLU(),
             nn.Linear(16 * observation_shape, 16 * observation_shape),
             nn.ReLU(),
