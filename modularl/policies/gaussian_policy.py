@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.init as init
 from modularl.policies.policy import AbstractPolicy
 from typing import Any
+
 LOG_STD_MAX = 2
 LOG_STD_MIN = -20
 

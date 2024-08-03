@@ -7,10 +7,7 @@ from typing import Tuple
 
 class AbstractPolicy(nn.Module, ABC):
 
-    def __init__(
-        self,
-        **kwargs
-    ):
+    def __init__(self, **kwargs):
         super(AbstractPolicy, self).__init__()
 
     @abstractmethod
