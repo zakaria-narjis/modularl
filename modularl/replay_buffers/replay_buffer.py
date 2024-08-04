@@ -38,7 +38,7 @@ class ReplayBuffer(AbstractReplayBuffer):
         elif sampling == "without_replacement":
             self.sampler = SamplerWithoutReplacement()
         self.buffer = TensorDictReplayBuffer(
-            storage=self.storage, sampler=self.sampler
+            storage=self.storage, sampler=self.sampler, **kwargs
         )
 
     def sample(self, batch_size: int):

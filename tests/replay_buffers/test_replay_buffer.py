@@ -8,7 +8,8 @@ from tensordict import TensorDict
 
 @pytest.fixture
 def replay_buffer():
-    return ReplayBuffer(buffer_size=1000, sampling="random")
+    rb = ReplayBuffer(buffer_size=1000, sampling="random", pin_memory=True)
+    return rb
 
 
 def test_replay_buffer_init(replay_buffer):
