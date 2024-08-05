@@ -6,6 +6,31 @@ from typing import Any, Optional
 
 
 class DeterministicPolicy(AbstractPolicy):
+    """
+    Deterministic Policy for continuous action spaces
+
+    :param observation_shape: Dimension of the observation space.
+    :type observation_shape: int
+
+    :param action_shape: Dimension of the action space.
+    :type action_shape: int
+
+    :param high_action: Upper bound of the action space.
+    :type high_action: float
+
+    :param low_action: Lower bound of the action space.
+    :type low_action: float
+
+    :param network: Custom neural network to represent the policy. If None, a default network is used. Defaults to None.
+    :type network: nn.Module, optional
+
+    :param use_xavier: Whether to use Xavier initialization for weights. Defaults to True.
+    :type use_xavier: bool, optional
+
+    :note:
+        If no custom network is provided, a default network is created with three linear layers and ReLU activations. The output layer uses a Tanh activation to bound the actions.
+    """  # noqa
+
     def __init__(
         self,
         observation_shape: int,
@@ -17,33 +42,6 @@ class DeterministicPolicy(AbstractPolicy):
         **kwargs: Any,
     ):
         super().__init__(**kwargs)
-        """
-        Deterministic Policy for continuous action spaces
-
-        Args:
-            observation_shape (int): Dimension of the observation space
-            action_shape (int): Dimension of the action space
-            high_action (float): Upper bound of the action space
-            low_action (float): Lower bound of the action space
-            network (nn.Module, optional): Custom neural network to represent the policy. If None, a default network is used.
-            use_xavier (bool, optional): Whether to use Xavier initialization for weights. Defaults to True.
-
-        Note:
-            If no custom network is provided, a default network is created with three linear layers and ReLU activations.
-            The output layer uses a Tanh activation to bound the actions.
-
-        Examples:
-            >>> policy = DeterministicPolicy(512, 10, 1, -1)
-            >>> custom_network = nn.Sequential(
-            >>>     nn.Linear(512, 256),
-            >>>     nn.ReLU(),
-            >>>     nn.Linear(256, 128),
-            >>>     nn.ReLU(),
-            >>>     nn.Linear(128, 10),
-            >>>     nn.Tanh()
-            >>> )
-            >>> policy = DeterministicPolicy(512, 10, 1, -1, network=custom_network)
-        """  # noqa
         self.high_action = high_action
         self.low_action = low_action
         self.action_shape = action_shape

@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from abc import ABC, abstractmethod
 
-from typing import Tuple
+from typing import Any
 
 
 class AbstractPolicy(nn.Module, ABC):
@@ -12,14 +12,26 @@ class AbstractPolicy(nn.Module, ABC):
 
     @abstractmethod
     def forward(self, observation: torch.Tensor) -> torch.Tensor:
-        pass
+        """
+        Forward pass of the policy network
+
+        Args:
+            observation (torch.Tensor): Observation from the environment
+        """  # noqa
 
     @abstractmethod
-    def get_action(
-        self, observation: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        pass
+    def get_action(self, observation: torch.Tensor) -> Any:
+        """
+        Get action from the policy
+
+        Args:
+            observation (torch.Tensor): Observation from the environment
+        return:
+            action (torch.Tensor): Action to be taken
+        """
 
     @abstractmethod
     def _initialize_weights(self) -> None:
-        pass
+        """
+        Initialize weights of the policy
+        """  # noqa

@@ -5,17 +5,22 @@ from modularl.q_functions.q_functions import StateActionQFunction
 
 
 class SAQNetwork(StateActionQFunction):
+    """
+    Initializes a fully-connected (s,a)-input Q-function network.
+
+    :param observation_shape: The shape of the observation input.
+    :type observation_shape: int
+
+    :param action_shape: The shape of the action input.
+    :type action_shape: int
+
+    :param use_xavier: Whether to use Xavier initialization for the network weights. Defaults to True.
+    :type use_xavier: bool, optional
+    """  # noqa
+
     def __init__(
         self, observation_shape: int, action_shape: int, use_xavier=True
     ):
-        """
-        Initializes a fully-connected (s,a)-input Q-function network.
-
-        Args:
-            observation_shape (int): The shape of the observation input.
-            action_shape (int): The shape of the action input.
-            use_xavier (bool): Whether to use Xavier initialization for the network weights. Default is True.
-        """  # noqa
         super().__init__()
         self.observation_shape = observation_shape
         self.action_shape = action_shape
@@ -33,16 +38,7 @@ class SAQNetwork(StateActionQFunction):
             self._initialize_weights()
 
     def forward(self, observation, actions):
-        """
-        Forward pass of the Q-function network.
 
-        Args:
-            observation (torch.Tensor): Batch Observation tensor.
-            actions (torch.Tensor): Batch Action tensor.
-
-        Returns:
-            torch.Tensor: Q-value tensor.
-        """
         q_input = torch.cat([observation, actions], 1)
         q_value = self.network(q_input)
         return q_value

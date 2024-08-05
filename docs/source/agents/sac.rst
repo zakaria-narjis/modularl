@@ -1,5 +1,5 @@
-SAC Module
-==========
+SAC (Soft Actor-Critic)
+=======================
 
 .. automodule:: modularl.agents.sac
    :members:

@@ -8,14 +8,10 @@ class StateQFunction(nn.Module, ABC):
 
     @abstractmethod
     def forward(self, observation: torch.Tensor) -> torch.Tensor:
-        """Evaluates Q-function
-
-        Args:
-            x (ndarray): state input
-
-        Returns:
-            An instance of ActionValue that allows to calculate the Q-values
-            for state x and every possible action
+        """
+        Forward pass of the Q-function network.
+        :param observation: Batch Observation tensor.
+        :return: Q-value tensor.
         """
         raise NotImplementedError()
 
@@ -27,13 +23,10 @@ class StateActionQFunction(nn.Module, ABC):
     def forward(
         self, observation: torch.Tensor, actions: torch.Tensor
     ) -> torch.Tensor:
-        """Evaluates Q-function
-
-        Args:
-            x (ndarray): state input
-            a (ndarray): action input
-
-        Returns:
-            Q-value for state x and action a
+        """
+        Forward pass of the Q-function network.
+        :param observation: Batch Observation tensor.
+        :param actions: Batch Action tensor.
+        :return: Q-value tensor.
         """
         raise NotImplementedError()
