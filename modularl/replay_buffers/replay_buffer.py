@@ -23,7 +23,7 @@ class ReplayBuffer(AbstractReplayBuffer):
         storage (LazyMemmapStorage): The storage object for storing transitions.
         sampler (Sampler): The sampler object for sampling transitions.
         buffer (TensorDictReplayBuffer): The buffer object for managing the storage and sampling.
-    """  # noqa: E501
+    """  # noqa
 
     def __init__(self, buffer_size: int, sampling="random", **kwargs):
         super().__init__(buffer_size, **kwargs)
