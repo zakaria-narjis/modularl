@@ -47,23 +47,6 @@ def test_gaussian_policy_get_action(gaussian_policy):
     assert torch.all(action >= -1) and torch.all(action <= 1)
 
 
-def test_gaussian_policy_deterministic_action(gaussian_policy):
-    batch_size = 10
-    observation = torch.randn(batch_size, gaussian_policy.observation_shape)
-
-    deterministic_action = gaussian_policy.get_action(
-        observation, deterministic=True
-    )
-
-    assert deterministic_action.shape == (
-        batch_size,
-        gaussian_policy.action_shape,
-    )
-    assert torch.all(deterministic_action >= -1) and torch.all(
-        deterministic_action <= 1
-    )
-
-
 def test_gaussian_policy_gradient_flow(gaussian_policy):
     batch_size = 10
     observation = torch.randn(

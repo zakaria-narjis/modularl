@@ -2,13 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.init as init
 from modularl.policies.policy import AbstractPolicy
-from typing import Any, Optional, Tuple
-
-LOG_STD_MAX = 2
-LOG_STD_MIN = -20
+from typing import Any, Optional
 
 
-class GaussianPolicy(AbstractPolicy):
+class DeterministicPolicy(AbstractPolicy):
     def __init__(
         self,
         observation_shape: int,
@@ -21,7 +18,7 @@ class GaussianPolicy(AbstractPolicy):
     ):
         super().__init__(**kwargs)
         """
-        Gaussian Policy for continuous action spaces
+        Deterministic Policy for continuous action spaces
 
         Args:
             observation_shape (int): Dimension of the observation space
@@ -32,40 +29,36 @@ class GaussianPolicy(AbstractPolicy):
             use_xavier (bool, optional): Whether to use Xavier initialization for weights. Defaults to True.
 
         Note:
-            The head of the network consists of two nn.Linear layers for mean and log_std, with input size equal to the output features of the last layer in the provided network.
+            If no custom network is provided, a default network is created with three linear layers and ReLU activations.
+            The output layer uses a Tanh activation to bound the actions.
 
         Examples:
-            >>> policy = GaussianPolicy(512, 10, 1, -1)
+            >>> policy = DeterministicPolicy(512, 10, 1, -1)
             >>> custom_network = nn.Sequential(
             >>>     nn.Linear(512, 256),
             >>>     nn.ReLU(),
             >>>     nn.Linear(256, 128),
             >>>     nn.ReLU(),
+            >>>     nn.Linear(128, 10),
+            >>>     nn.Tanh()
             >>> )
-            >>> policy = GaussianPolicy(512, 10, 1, -1, network=custom_network)
+            >>> policy = DeterministicPolicy(512, 10, 1, -1, network=custom_network)
         """  # noqa
         self.high_action = high_action
         self.low_action = low_action
         self.action_shape = action_shape
         self.observation_shape = observation_shape
-
         if network is None:
             self.network = nn.Sequential(
                 nn.Linear(observation_shape, 16 * observation_shape),
                 nn.ReLU(),
                 nn.Linear(16 * observation_shape, 16 * observation_shape),
                 nn.ReLU(),
+                nn.Linear(16 * observation_shape, self.action_shape),
+                nn.Tanh(),
             )
         else:
             self.network = network
-
-        self.fc_mean = nn.Linear(
-            self.network[-2].out_features, self.action_shape
-        )
-        self.fc_logstd = nn.Linear(
-            self.network[-2].out_features, self.action_shape
-        )
-
         # action rescaling
         self.register_buffer(
             "action_scale",
@@ -82,40 +75,21 @@ class GaussianPolicy(AbstractPolicy):
         if use_xavier:
             self._initialize_weights()
 
-    def forward(
-        self, observation: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        x = self.network(observation)
-        mean = self.fc_mean(x)
-        log_std = self.fc_logstd(x)
-        log_std = torch.clamp(log_std, LOG_STD_MIN, LOG_STD_MAX)
-        return mean, log_std
+    def forward(self, observation):
+        output = self.network(observation)
+        return output
 
-    def get_action(self, observation: torch.Tensor):
+    def get_action(self, observation):
         """
         Get action from the policy
 
         Args:
             observation (torch.Tensor): Observation from the environment
-        Returns:
-            action (torch.Tensor): Sampled action from the policy distribution (only if deterministic is False)
-            log_prob (torch.Tensor): Log probability of the action (only if deterministic is False)
-            mean (torch.Tensor): Mean of the action distribution
+        return:
+            action (torch.Tensor): Action to be taken
         """  # noqa
-        mean, log_std = self(observation)
-        std = log_std.exp()
-        normal = torch.distributions.Normal(mean, std)
-        x_t = (
-            normal.rsample()
-        )  # for reparameterization trick (mean + std * N(0,1))
-        y_t = torch.tanh(x_t)
-        action = y_t * self.action_scale + self.action_bias
-        log_prob = normal.log_prob(x_t)
-        # Enforcing Action Bound
-        log_prob -= torch.log(self.action_scale * (1 - y_t.pow(2)) + 1e-6)
-        log_prob = log_prob.sum(1, keepdim=True)
-        mean = torch.tanh(mean) * self.action_scale + self.action_bias
-        return action, log_prob, mean
+        actions = self(observation) * self.action_scale + self.action_bias
+        return actions
 
     def _initialize_weights(self):
         for m in self.modules():
