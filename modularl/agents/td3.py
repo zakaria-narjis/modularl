@@ -10,6 +10,58 @@ from torch.utils.tensorboard import SummaryWriter
 
 
 class TD3(AbstractAgent):
+    """
+    Twin Delayed Deep Deterministic Policy Gradient (TD3) Agent
+
+    :param actor: The actor network.
+    :type actor: torch.nn.Module
+
+    :param qf1: The first Q-function network.
+    :type qf1: torch.nn.Module
+
+    :param qf2: The second Q-function network.
+    :type qf2: torch.nn.Module
+
+    :param actor_optimizer: Optimizer for the actor network.
+    :type actor_optimizer: torch.optim.Optimizer
+
+    :param q_optimizer: Optimizer for the Q-function networks.
+    :type q_optimizer: torch.optim.Optimizer
+
+    :param replay_buffer: Replay buffer for storing experiences.
+    :type replay_buffer: TensorDictReplayBuffer
+
+    :param gamma: Discount factor for future rewards. Defaults to 0.99.
+    :type gamma: float, optional
+
+    :param batch_size: Number of samples per batch for training. Defaults to 32.
+    :type batch_size: int, optional
+
+    :param learning_starts: Number of steps before learning starts. Defaults to 0.
+    :type learning_starts: int, optional
+
+    :param tau: Soft update coefficient for target networks. Defaults to 0.005.
+    :type tau: float, optional
+
+    :param policy_noise: Noise added to the target policy during critic updates. Defaults to 0.2.
+    :type policy_noise: float, optional
+
+    :param noise_clip: Range to clip the target policy noise. Defaults to 0.5.
+    :type noise_clip: float, optional
+
+    :param policy_frequency: Frequency of delayed policy updates. Defaults to 2.
+    :type policy_frequency: int, optional
+
+    :param device: Device to run the agent on (e.g., "cpu" or "cuda"). Defaults to "cpu".
+    :type device: str, optional
+
+    :param burning_action_func: Function for generating initial exploratory actions. Defaults to None.
+    :type burning_action_func: Callable, optional
+
+    :param writer: Tensorboard writer for logging. Defaults to None.
+    :type writer: SummaryWriter, optional
+    """  # noqa: E501
+
     def __init__(
         self,
         actor: torch.nn.Module,
@@ -30,27 +82,6 @@ class TD3(AbstractAgent):
         writer: Optional[SummaryWriter] = None,
         **kwargs: Any
     ) -> None:
-        """
-        Twin Delayed Deep Deterministic Policy Gradient (TD3) Agent
-
-        Args:
-            actor (torch.nn.Module): Actor network
-            qf1 (torch.nn.Module): First Q-function network
-            qf2 (torch.nn.Module): Second Q-function network
-            actor_optimizer (torch.optim.Optimizer): Actor optimizer
-            q_optimizer (torch.optim.Optimizer): Q-function optimizer
-            replay_buffer (TensorDictReplayBuffer): Replay buffer
-            gamma (float, optional): Discount factor. Defaults to 0.99.
-            batch_size (int, optional): Batch size for training. Defaults to 32.
-            learning_starts (int, optional): Number of steps before learning starts. Defaults to 0.
-            tau (float, optional): Target network update rate. Defaults to 0.005.
-            policy_noise (float, optional): Noise added to target policy during critic update. Defaults to 0.2.
-            noise_clip (float, optional): Range to clip target policy noise. Defaults to 0.5.
-            policy_frequency (int, optional): Frequency of delayed policy updates. Defaults to 2.
-            device (str, optional): Device to run the agent on. Defaults to "cpu".
-            burning_action_func (Optional[Callable], optional): Function for generating initial exploratory actions. Defaults to None.
-            writer (Optional[SummaryWriter], optional): Tensorboard writer for logging. Defaults to None.
-        """  # noqa: E501
         super().__init__(**kwargs)
         self.device = device
         self.writer = writer
@@ -87,15 +118,7 @@ class TD3(AbstractAgent):
         batch_next_obs: torch.Tensor,
         batch_dones: torch.Tensor,
     ) -> None:
-        """
-        Observe the environment and store the transition in the replay buffer
-        Args:
-            batch_obs (torch.Tensor): Tensor containing the observations
-            batch_actions (torch.Tensor): Tensor containing the actions
-            batch_rewards (torch.Tensor): Tensor containing the rewards
-            batch_next_obs (torch.Tensor): Tensor containing the next observations
-            batch_dones (torch.Tensor): Tensor containing the dones
-        """  # noqa: E501
+
         self.global_step += 1
         batch_transition = TensorDict(
             {
@@ -111,27 +134,7 @@ class TD3(AbstractAgent):
         self.update()
 
     def act_train(self, batch_obs: torch.Tensor) -> torch.Tensor:
-        """
-        Generate actions for training based on the current policy with exploration noise.
 
-        This method handles the exploration-exploitation trade-off during training.
-        It uses a burning action function for initial exploration if specified,
-        then switches to the learned policy with added Gaussian noise.
-
-        Args:
-            batch_obs (torch.Tensor): A batch of observations from the environment.
-
-        Returns:
-            torch.Tensor: A batch of actions to be taken in the environment.
-
-        Notes:
-            - If the global step is less than `learning_starts` and a burning action
-            function is provided, it uses that function for exploration.
-            - Otherwise, it uses the current policy (actor) to generate actions and adds
-            Gaussian noise for exploration.
-            - The noise is scaled by the actor's action scale and the policy noise parameter.
-            - The final actions are clamped to be within the valid action range.
-        """  # noqa: E501
         if (
             self.global_step < self.learning_starts
             and self.burning_action_func is not None
@@ -150,15 +153,7 @@ class TD3(AbstractAgent):
             )
 
     def act_eval(self, batch_obs: torch.Tensor) -> torch.Tensor:
-        """
-        Returns the actions to take in evaluation mode.
 
-        Args:
-            batch_obs (torch.Tensor): The input observations (N,*).
-
-        Returns:
-            torch.Tensor: The actions to take(N,*).
-        """
         self.actor.eval()
         with torch.no_grad():
             actions = self.actor(batch_obs.to(self.device))
@@ -166,15 +161,7 @@ class TD3(AbstractAgent):
         return actions
 
     def update(self) -> None:
-        """
-        Update the SAC agent by performing a training step.
 
-        This method implements the training logic for the SAC (Soft Actor-Critic) algorithm.
-        It updates the Q-networks, the actor network, and the temperature parameter alpha.
-
-        Returns:
-            None
-        """  # noqa: E501
         if self.global_step > self.learning_starts:
             data = self.rb.sample(self.batch_size).to(self.device)
 
