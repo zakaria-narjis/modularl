@@ -11,21 +11,18 @@ class ReplayBuffer(AbstractReplayBuffer):
     """
     A replay buffer for storing and sampling transitions for reinforcement learning.
 
-    Args:
-        buffer_size (int): The maximum capacity of the replay buffer.
-        sampling (str): The type of sampling to use. Options are 'random', 'prioritized', and 'without_replacement'.
-        **kwargs: Additional keyword arguments to be passed to the base class.
+    :param buffer_size: The maximum capacity of the replay buffer.
+    :type buffer_size: int
 
-    Attributes:
+    :param sampling: The type of sampling to use. Options are 'random', 'prioritized', and 'without_replacement'.
+    :type sampling: str
+
+    :param \**kwargs: Additional keyword arguments to be passed to the base class.
+
+    :attributes:
         storage (LazyMemmapStorage): The storage object for storing transitions.
         sampler (Sampler): The sampler object for sampling transitions.
         buffer (TensorDictReplayBuffer): The buffer object for managing the storage and sampling.
-
-    Methods:
-        sample(batch_size): Sample a batch of transitions from the buffer.
-        extend(transition): Add a transition to the buffer.
-        update(idx, transition): Update a transition in the buffer.
-
     """  # noqa: E501
 
     def __init__(self, buffer_size: int, sampling="random", **kwargs):
@@ -42,38 +39,16 @@ class ReplayBuffer(AbstractReplayBuffer):
         )
 
     def sample(self, batch_size: int):
-        """
-        Sample a batch of transitions from the buffer.
 
-        Args:
-            batch_size (int): The number of transitions to sample.
-
-        Returns:
-            sample (TensorDict): A batch of sampled transitions.
-
-        """
         sample = self.buffer.sample(batch_size)
         return sample
 
     def extend(self, transition):
-        """
-        Add a transition to the buffer.
 
-        Args:
-            transition (TensorDict): The transition to add to the buffer.
-
-        """
         self.buffer.extend(transition)
 
     def update(self, idx, transition):
-        """
-        Update a transition in the buffer.
 
-        Args:
-            idx (int): The index of the transition to update.
-            transition (TensorDict): The updated transition.
-
-        """
         self.buffer[idx] = transition
 
     def __len__(self):
