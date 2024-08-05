@@ -100,6 +100,9 @@ class SAC(AbstractAgent):
             self.alpha = self.alpha
 
     def init(self) -> None:
+        """
+        Initializes the agent by setting the start time and global step to zero.
+        """  # noqa: E501
         self.start_time = time.time()
         self.global_step = 0
 
