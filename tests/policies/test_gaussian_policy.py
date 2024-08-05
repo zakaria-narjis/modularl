@@ -1,5 +1,3 @@
-# test_gaussian_policy.py
-
 import pytest
 import torch
 from modularl.policies.gaussian_policy import GaussianPolicy
