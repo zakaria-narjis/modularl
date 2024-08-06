@@ -8,6 +8,10 @@ Welcome to ModulaRL Documentation
 
 **Note: ModulaRL is currently under construction.**
 
+.. image:: https://readthedocs.org/projects/modularl/badge/?version=latest
+    :target: https://modularl.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
 ModulaRL is a highly modular and extensible reinforcement learning library built on PyTorch. It aims to provide researchers and developers with a flexible framework for implementing, experimenting with, and extending various RL algorithms.
 
 Features

@@ -56,3 +56,13 @@ html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 html_logo = "_static/modulaRL_logo.svg"
 # Add the project root to the system path
+
+#  -- HTML context for GitHub integration ------------------------------------
+
+html_context = {
+    "display_github": True,  # Integrate GitHub
+    "github_user": "zakaria-narjis",  # GitHub username
+    "github_repo": "modularl",  # Repository name
+    "github_version": "main",  # Branch name
+    "conf_py_path": "/docs/source/",  # Path in the checkout to the docs root
+}
