@@ -10,6 +10,7 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![pytest](https://img.shields.io/badge/tested%20with-pytest-46a2f1.svg)](https://docs.pytest.org/en/stable/)
 [![Documentation Status](https://readthedocs.org/projects/modularl/badge/?version=latest)](https://modularl.readthedocs.io/en/latest/?badge=latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ModulaRL is a highly modular and extensible reinforcement learning library built on PyTorch. It aims to provide researchers and developers with a flexible framework for implementing, experimenting with, and extending various RL algorithms.
 
