@@ -1,0 +1,5 @@
+sphinx>=5.0
+sphinx-rtd-theme>=1.0  # For Read the Docs theme
+sphinx-autobuild>=2021.3.14  # For local documentation preview
+sphinxcontrib-napoleon>=0.7  # For Google and NumPy style docstrings
+sphinxcontrib-httpdomain>=1.8.1  # For HTTP API documentation
