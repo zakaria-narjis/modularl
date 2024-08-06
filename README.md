@@ -29,9 +29,13 @@ pip install modularl
 ```
 ## Algorithms Implemented
 
-| Algorithm | Type | Paper |
-|-----------|------|-------|
-| SAC (Soft Actor-Critic) | Off-policy | [Haarnoja et al. 2018](https://arxiv.org/abs/1801.01290) |
+## Algorithms Implemented
+
+| Algorithm                  | Type       | Paper                                               | Continuous Action | Discrete Action      |
+|----------------------------|------------|-----------------------------------------------------|-------------------|----------------------|
+| SAC (Soft Actor-Critic)    | Off-policy | [Haarnoja et al. 2018](https://arxiv.org/abs/1801.01290) | ✅                 | Not implemented YET  |
+| TD3 (Twin Delayed DDPG)    | Off-policy | [Fujimoto et al. 2018](https://arxiv.org/abs/1802.09477) | ✅                 | Not implemented YET  |
+
 
 
 ## Citation
