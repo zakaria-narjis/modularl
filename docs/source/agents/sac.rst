@@ -4,11 +4,11 @@ SAC (Soft Actor-Critic)
 API Reference
 -------------
 
-.. autoclass:: modularl.agents.sac.SAC
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
+.. autoclass:: modularl.agents.SAC
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    
 Example Usage
 -------------
 
