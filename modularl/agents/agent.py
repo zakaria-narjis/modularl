@@ -50,10 +50,24 @@ class AbstractAgent(abc.ABC):
         Observe the environment and store the transition in the replay buffer.
 
         :param batch_obs: (torch.Tensor) Tensor containing the observations.
+            Shape: (batch_size, \\*)
         :param batch_actions: (torch.Tensor) Tensor containing the actions.
+            Shape: (batch_size, action_dim)
         :param batch_rewards: (torch.Tensor) Tensor containing the rewards.
+            Shape: (batch_size,)
         :param batch_next_obs: (torch.Tensor) Tensor containing the next observations.
+            Shape: (batch_size, \\*)
         :param batch_dones: (torch.Tensor) Tensor containing the dones.
+            Shape: (batch_size,)
+
+        where:
+            - batch_size is the number of transitions in the batch
+            - action_dim is the dimension of the action space
+            - \\* in the observation shape represents the dimension of the observation space, which depends on the environment and the networks (e.g., (3, 64, 64) for images or (512,) for vectors)
+
+        Note:
+            - The shapes assume a vectorized environment. For a single environment, batch_size would typically be 1.
+
         """  # noqa: E501
 
     @abc.abstractmethod

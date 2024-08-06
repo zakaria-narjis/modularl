@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.init as init
 from modularl.q_functions.q_functions import StateActionQFunction
+from typing import Optional
 
 
 class SAQNetwork(StateActionQFunction):
@@ -19,21 +20,27 @@ class SAQNetwork(StateActionQFunction):
     """  # noqa
 
     def __init__(
-        self, observation_shape: int, action_shape: int, use_xavier=True
+        self,
+        observation_shape: int,
+        action_shape: int,
+        network: Optional[nn.Module] = None,
+        use_xavier=True,
     ):
         super().__init__()
         self.observation_shape = observation_shape
         self.action_shape = action_shape
-
-        self.network = nn.Sequential(
-            nn.Linear(
-                observation_shape + action_shape, 16 * observation_shape
-            ),
-            nn.ReLU(),
-            nn.Linear(16 * observation_shape, 16 * observation_shape),
-            nn.ReLU(),
-            nn.Linear(16 * observation_shape, 1),
-        )
+        if network is None:
+            self.network = nn.Sequential(
+                nn.Linear(
+                    observation_shape + action_shape, 16 * observation_shape
+                ),
+                nn.ReLU(),
+                nn.Linear(16 * observation_shape, 16 * observation_shape),
+                nn.ReLU(),
+                nn.Linear(16 * observation_shape, 1),
+            )
+        else:
+            self.network = network
         if use_xavier:
             self._initialize_weights()
 
