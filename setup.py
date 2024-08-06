@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="modularl",
-    version="0.1.1",
+    version="0.1.2",
     author="Zakaria Narjis",
     author_email="zakaria.narjis.97@gmail.com",
     description="A modular reinforcement learning library",

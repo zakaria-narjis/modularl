@@ -162,8 +162,6 @@ class SAC(AbstractAgent):
     def act_train(self, batch_obs: torch.Tensor) -> torch.Tensor:
         """
         Generate actions for training based on the current policy.
-
-        This method handles the exploration-exploitation trade-off during training.
         It uses a burning action function for initial exploration if specified,
         then switches to the learned policy.
 
@@ -174,8 +172,6 @@ class SAC(AbstractAgent):
             - If the global step is less than `learning_starts` and a burning action
               function is provided, it uses that function for exploration.
             - Otherwise, it uses the current policy (actor) to generate actions.
-            - The actions are detached from the computation graph to prevent
-              gradients from flowing back through the actor during certain updates.
         """  # noqa: E501
         if (
             self.global_step < self.learning_starts

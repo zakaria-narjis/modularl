@@ -80,11 +80,11 @@ class AbstractAgent(abc.ABC):
         """  # noqa: E501
 
     @abc.abstractmethod
-    def act_eval(self, obs: torch.Tensor) -> torch.Tensor:
+    def act_eval(self, batch_obs: torch.Tensor) -> torch.Tensor:
         """
         Select an action for evaluation.
 
-        :param obs: (torch.Tensor) Tensor containing the observation.
+        :param batch_obs: (torch.Tensor) Tensor containing the observation.
         :return: (torch.Tensor) Selected action for evaluation.
         """  # noqa: E501
 
