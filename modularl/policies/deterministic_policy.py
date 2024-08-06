@@ -56,7 +56,11 @@ class DeterministicPolicy(AbstractPolicy):
                 nn.Tanh(),
             )
         else:
-            self.network = network
+            self.network = nn.Sequential(
+                network,
+                nn.Linear(network[-2].out_feature, self.action_shape),
+                nn.Tanh(),
+            )
         # action rescaling
         self.register_buffer(
             "action_scale",

@@ -17,7 +17,7 @@ class ReplayBuffer(AbstractReplayBuffer):
     :param sampling: The type of sampling to use. Options are 'random', 'prioritized', and 'without_replacement'.
     :type sampling: str
 
-    :param \**kwargs: Additional keyword arguments to be passed to the base class.
+    :param \\**kwargs: Additional keyword arguments to be passed to the base class.
 
     :attributes:
         storage (LazyMemmapStorage): The storage object for storing transitions.
