@@ -169,7 +169,9 @@ class TD3(AbstractAgent):
                 if self.gamma != 0:
                     clipped_noise = (
                         torch.randn_like(data["actions"]) * self.policy_noise
-                    ).clamp(-self.noise_clip, self.noise_clip)
+                    ).clamp(
+                        -self.noise_clip, self.noise_clip
+                    ) * self.target_actor.action_scale
 
                     next_state_actions = (
                         self.target_actor(data["next_observations"])
