@@ -10,7 +10,7 @@ LOG_STD_MIN = -20
 
 class GaussianPolicy(AbstractPolicy):
     """
-    Gaussian Policy for continuous action spaces
+    Gaussian Policy for continuous action spaces.
 
     :param observation_shape: Dimension of the observation space.
     :type observation_shape: int
@@ -30,7 +30,12 @@ class GaussianPolicy(AbstractPolicy):
     :param use_xavier: Whether to use Xavier initialization for weights. Defaults to True.
     :type use_xavier: bool, optional
 
-    :note: The head of the network consists of two nn.Linear layers for mean and log_std, with input size equal to the output features of the last layer in the provided network.
+    Note:
+        If a custom network is provided, it should be headless, meaning that this class will add additional
+        linear layers on top of the provided network. Specifically, the class appends two `nn.Linear` layers for
+        mean and log_std, with input size equal to the output features of the last layer in the provided network.
+        The head of the network consists of two nn.Linear layers for mean and log_std, with input size equal to
+        the output features of the last layer in the provided network.
     """  # noqa
 
     def __init__(

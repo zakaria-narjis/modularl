@@ -7,7 +7,7 @@ from typing import Any, Optional
 
 class DeterministicPolicy(AbstractPolicy):
     """
-    Deterministic Policy for continuous action spaces
+    Deterministic Policy for continuous action spaces.
 
     :param observation_shape: Dimension of the observation space.
     :type observation_shape: int
@@ -27,8 +27,9 @@ class DeterministicPolicy(AbstractPolicy):
     :param use_xavier: Whether to use Xavier initialization for weights. Defaults to True.
     :type use_xavier: bool, optional
 
-    :note:
+    Note:
         If no custom network is provided, a default network is created with three linear layers and ReLU activations. The output layer uses a Tanh activation to bound the actions.
+        If a custom network is provided, it should be headless, meaning that this class will add an additional linear layer on top of the provided network for the policy output, with input size equal to the output features of the last layer in the provided network.
     """  # noqa
 
     def __init__(

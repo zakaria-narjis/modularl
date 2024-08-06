@@ -15,8 +15,15 @@ class SAQNetwork(StateActionQFunction):
     :param action_shape: The shape of the action input.
     :type action_shape: int
 
+    :param network: Custom neural network to represent the Q-function. If None, a default network is used. Defaults to None.
+    :type network: nn.Module, optional
+
     :param use_xavier: Whether to use Xavier initialization for the network weights. Defaults to True.
     :type use_xavier: bool, optional
+
+    Note:
+        If no custom network is provided, a default network is created with three linear layers and ReLU activations. The output layer uses a Tanh activation to bound the actions.
+        If a custom network is provided, it should be headless, meaning that this class will add an additional linear layer on top of the provided network for the policy output, with input size equal to the output features of the last layer in the provided network.
     """  # noqa
 
     def __init__(
