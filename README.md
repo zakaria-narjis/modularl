@@ -22,12 +22,17 @@ ModulaRL is a highly modular and extensible reinforcement learning library built
 - Clear documentation and examples for quick start
 - Designed for both research and practical applications in reinforcement learning
 
+## TODO
+  - Add new algorithms
+  - Add exploration modules
+  - Add experiment wrapper modules
+  
 ## Installation
 
 ```bash
 pip install modularl
 ```
-## Algorithms Implemented
+
 
 ## Algorithms Implemented
 
