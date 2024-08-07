@@ -43,6 +43,9 @@ class TD3(AbstractAgent):
     :param tau: Soft update coefficient for target networks. Defaults to 0.005.
     :type tau: float, optional
 
+    :param exploration_noise: Noise added to the actor policy during training. Defaults to 0.1.
+    :type exploration_noise: float, optional
+
     :param policy_noise: Noise added to the target policy during critic updates. Defaults to 0.2.
     :type policy_noise: float, optional
 
@@ -74,6 +77,7 @@ class TD3(AbstractAgent):
         batch_size: int = 32,
         learning_starts: int = 0,
         tau: float = 0.005,
+        exploration_noise: float = 0.1,
         policy_noise: float = 0.2,
         noise_clip: float = 0.5,
         policy_frequency: int = 2,
@@ -93,6 +97,7 @@ class TD3(AbstractAgent):
         self.gamma = gamma
         self.policy_noise = policy_noise
         self.noise_clip = noise_clip
+        self.exploration_noise = exploration_noise
         self.policy_frequency = policy_frequency
 
         # Networks
@@ -134,23 +139,24 @@ class TD3(AbstractAgent):
         self.update()
 
     def act_train(self, batch_obs: torch.Tensor) -> torch.Tensor:
-
-        if (
-            self.global_step < self.learning_starts
-            and self.burning_action_func is not None
-        ):
-            return self.burning_action_func(batch_obs).to(self.device)
-        else:
-            actions = self.actor(batch_obs.to(self.device))
-            actions = actions + torch.normal(
-                0,
-                self.actor.action_scale * self.policy_noise,
-                size=actions.shape,
-                device=self.device,
-            )
-            return actions.clamp(
-                -self.actor.action_scale, self.actor.action_scale
-            )
+        with torch.no_grad():
+            if (
+                self.global_step < self.learning_starts
+                and self.burning_action_func is not None
+            ):
+                return self.burning_action_func(batch_obs).to(self.device)
+            else:
+                actions = self.actor(batch_obs.to(self.device))
+                actions = actions + torch.normal(
+                    0,
+                    self.actor.action_scale * self.exploration_noise,
+                    size=actions.shape,
+                    device=self.device,
+                )
+                actions = actions.clamp(
+                    self.actor.low_action, self.actor.high_action
+                )
+                return actions
 
     def act_eval(self, batch_obs: torch.Tensor) -> torch.Tensor:
 
@@ -168,7 +174,8 @@ class TD3(AbstractAgent):
             with torch.no_grad():
                 if self.gamma != 0:
                     clipped_noise = (
-                        torch.randn_like(data["actions"]) * self.policy_noise
+                        torch.randn_like(data["actions"], device=self.device)
+                        * self.policy_noise
                     ).clamp(
                         -self.noise_clip, self.noise_clip
                     ) * self.target_actor.action_scale

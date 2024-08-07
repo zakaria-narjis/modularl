@@ -74,6 +74,7 @@ Here's an example of how to use the TD3 agent:
         batch_size=64,
         gamma=0.99,
         tau=0.005,
+        exploration_noise=0.1,
         policy_noise=0.2,
         noise_clip=0.5,
         policy_frequency=2,
