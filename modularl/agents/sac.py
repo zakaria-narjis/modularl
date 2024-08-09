@@ -26,8 +26,8 @@ class SAC(AbstractAgent):
     :param actor_optimizer: Optimizer for the actor network.
     :type actor_optimizer: torch.optim.Optimizer
 
-    :param q_optimizer: Optimizer for both Q-function networks.
-    :type q_optimizer: torch.optim.Optimizer
+    :param qf_optimizer: Optimizer for both Q-function networks.
+    :type qf_optimizer: torch.optim.Optimizer
 
     :param replay_buffer: Replay buffer for storing experiences.
     :type replay_buffer: TensorDictReplayBuffer
@@ -75,7 +75,7 @@ class SAC(AbstractAgent):
         qf1: torch.nn.Module,
         qf2: torch.nn.Module,
         actor_optimizer: torch.optim.Optimizer,
-        q_optimizer: torch.optim.Optimizer,
+        qf_optimizer: torch.optim.Optimizer,
         replay_buffer: TensorDictReplayBuffer,
         gamma: float = 0.99,
         entropy_lr: float = 1e-3,
@@ -110,7 +110,7 @@ class SAC(AbstractAgent):
         self.qf1_target.load_state_dict(self.qf1.state_dict())
         self.qf2_target.load_state_dict(self.qf2.state_dict())
         self.actor_optimizer = actor_optimizer
-        self.q_optimizer = q_optimizer
+        self.qf_optimizer = qf_optimizer
         self.alpha = entropy_temperature
         self.entropy_lr = entropy_lr
         self.policy_frequency = policy_frequency
@@ -232,9 +232,9 @@ class SAC(AbstractAgent):
             qf_loss = qf1_loss + qf2_loss
 
             # optimize the model
-            self.q_optimizer.zero_grad()
+            self.qf_optimizer.zero_grad()
             qf_loss.backward()
-            self.q_optimizer.step()
+            self.qf_optimizer.step()
 
             if (
                 self.global_step % self.policy_frequency == 0

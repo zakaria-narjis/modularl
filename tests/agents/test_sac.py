@@ -108,7 +108,7 @@ def sac_agent():
     qf1 = DummyQFunction(obs_dim, action_dim)
     qf2 = DummyQFunction(obs_dim, action_dim)
     actor_optimizer = torch.optim.Adam(actor.parameters())
-    q_optimizer = torch.optim.Adam(
+    qf_optimizer = torch.optim.Adam(
         list(qf1.parameters()) + list(qf2.parameters())
     )
     replay_buffer = ReplayBuffer(buffer_size=1000)
@@ -117,7 +117,7 @@ def sac_agent():
         qf1=qf1,
         qf2=qf2,
         actor_optimizer=actor_optimizer,
-        q_optimizer=q_optimizer,
+        qf_optimizer=qf_optimizer,
         replay_buffer=replay_buffer,
         batch_size=32,
         learning_starts=100,

@@ -106,7 +106,7 @@ Here's an example of how to use the TD3 agent:
         print(f"Episode {episode+1}, Reward: {episode_reward}")
 
     # Save the trained agent
-    agent.save('td3_agent.pth')
+    agent.save('td3_agent.pth') #Not implemented yet (consider saving the actor and critic models manually)
 
 This example demonstrates how to:
 
