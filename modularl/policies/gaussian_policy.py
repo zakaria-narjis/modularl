@@ -89,15 +89,15 @@ class GaussianPolicy(AbstractPolicy):
             self._initialize_weights()
 
     def forward(
-        self, observation: torch.Tensor
+        self, batch_observation: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        x = self.network(observation)
+        x = self.network(batch_observation)
         mean = self.fc_mean(x)
         log_std = self.fc_logstd(x)
         log_std = torch.clamp(log_std, LOG_STD_MIN, LOG_STD_MAX)
         return mean, log_std
 
-    def get_action(self, observation: torch.Tensor):
+    def get_action(self, batch_observation: torch.Tensor):
         """
         Get action from the policy
 
@@ -108,7 +108,7 @@ class GaussianPolicy(AbstractPolicy):
             log_prob (torch.Tensor): Log probability of the action (only if deterministic is False)
             mean (torch.Tensor): Mean of the action distribution
         """  # noqa
-        mean, log_std = self(observation)
+        mean, log_std = self(batch_observation)
         std = log_std.exp()
         normal = torch.distributions.Normal(mean, std)
         x_t = (

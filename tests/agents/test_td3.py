@@ -46,6 +46,11 @@ class DummyActor(nn.Module):
         x = F.relu(self.fc2(x))
         return torch.tanh(self.fc3(x))
 
+    def get_action(self, observation):
+
+        actions = self(observation) * self.action_scale + self.action_bias
+        return actions
+
     def _initialize_weights(self):
         for m in self.modules():
             if isinstance(m, nn.Linear):

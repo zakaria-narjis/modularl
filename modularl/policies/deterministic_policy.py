@@ -78,20 +78,14 @@ class DeterministicPolicy(AbstractPolicy):
         if use_xavier:
             self._initialize_weights()
 
-    def forward(self, observation):
-        output = self.network(observation)
+    def forward(self, batch_observation):
+        output = self.network(batch_observation)
         return output
 
-    def get_action(self, observation):
-        """
-        Get action from the policy
-
-        Args:
-            observation (torch.Tensor): Observation from the environment
-        return:
-            action (torch.Tensor): Action to be taken
-        """  # noqa
-        actions = self(observation) * self.action_scale + self.action_bias
+    def get_action(self, batch_observation):
+        actions = (
+            self(batch_observation) * self.action_scale + self.action_bias
+        )
         return actions
 
     def _initialize_weights(self):

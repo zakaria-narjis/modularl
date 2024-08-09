@@ -146,7 +146,7 @@ class TD3(AbstractAgent):
             ):
                 return self.burning_action_func(batch_obs).to(self.device)
             else:
-                actions = self.actor(batch_obs.to(self.device))
+                actions = self.actor.get_action(batch_obs.to(self.device))
                 actions = actions + torch.normal(
                     0,
                     self.actor.action_scale * self.exploration_noise,
@@ -162,7 +162,7 @@ class TD3(AbstractAgent):
 
         self.actor.eval()
         with torch.no_grad():
-            actions = self.actor(batch_obs.to(self.device))
+            actions = self.actor.get_action(batch_obs.to(self.device))
         self.actor.train()
         return actions
 
@@ -216,7 +216,8 @@ class TD3(AbstractAgent):
 
             if self.global_step % self.policy_frequency == 0:
                 actor_loss = -self.qf1(
-                    data["observations"], self.actor(data["observations"])
+                    data["observations"],
+                    self.actor.get_action(data["observations"]),
                 ).mean()
 
                 self.actor_optimizer.zero_grad()
