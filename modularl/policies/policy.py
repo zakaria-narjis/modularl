@@ -11,7 +11,11 @@ class AbstractPolicy(nn.Module, ABC):
     @abstractmethod
     def forward(self, batch_observation: torch.Tensor) -> torch.Tensor:
         """
-        Forward pass of the policy network
+        Forward pass of the policy network.
+
+        Note:
+            This method should not be used to get actions.
+            For obtaining the batch actions, please use the `get_action` method.
 
         Args:
             batch_observation (torch.Tensor): Batch observation from the environment
