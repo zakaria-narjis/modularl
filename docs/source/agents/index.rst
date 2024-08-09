@@ -9,6 +9,7 @@ Agents
 .. toctree::
    :maxdepth: 2
 
-   sac
+   ddpg
    td3
+   sac
 
