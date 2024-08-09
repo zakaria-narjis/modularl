@@ -40,6 +40,8 @@ pip install modularl
 |----------------------------|------------|-----------------------------------------------------|-------------------|----------------------|
 | SAC (Soft Actor-Critic)    | Off-policy | [Haarnoja et al. 2018](https://arxiv.org/abs/1801.01290) | ✅                 | Not implemented YET  |
 | TD3 (Twin Delayed DDPG)    | Off-policy | [Fujimoto et al. 2018](https://arxiv.org/abs/1802.09477) | ✅                 | Not implemented YET  |
+| DDPG (Deep Deterministic Policy Gradient) | Off-policy | [Lillicrap et al. 2015](https://arxiv.org/abs/1509.02971) | ✅                 | Not implemented YET  |
+
 
 
 
